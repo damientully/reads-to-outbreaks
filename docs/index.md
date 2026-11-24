@@ -68,11 +68,17 @@ traced back to the public record.
 
 ~/roche/viral-genomics/                   yours
   scripts/               your copies
-  logs/                  %j_<tag>.out and %j_<tag>.err
+  vg_<step>_<jobid>.out  job logs, written where you submit from
   results/               one subfolder per step
 ```
 
 ## 1. Set up your workspace
+
+> **Facilitators:** the bundle must be staged at
+> `/mnt/roche/resources/viral-genomics` before anyone follows these steps. Build
+> and verify it with `build/stage_bundle.sh`, push it with `rsync`, then
+> `chmod -R a+rX,go-w`. The scripts will stop with a clear error if the reads are
+> not there, but they cannot stage it for you.
 
 ```
 export WORKDIR=$HOME/roche/viral-genomics
@@ -85,9 +91,15 @@ cd $WORKDIR
 
 Every tool comes from modules, including `read_keep/0.3.0` and `iqtree2/2.4.0`.
 
-Every script has an `EDIT HERE` block at the top. The only thing you normally
-change is `SAMPLE`. Work with `A01` throughout; if you finish early, try `A07`,
-which behaves completely differently.
+Each step runs as a **job array over all twelve samples** — one task per sample,
+so twelve run side by side and the whole step finishes in about the time one
+sample takes. Comparing samples is the point of several steps, and you cannot do
+that one sample at a time.
+
+Every script has an `EDIT HERE` block at the top. You do not normally change
+anything in it. To run a single sample instead, submit without the array:
+`sbatch --array=1 scripts/qc.sh` for A01, or edit `SAMPLE` and drop `--array`
+from the script.
 
 Submit with `sbatch`, watch your jobs with `squeue -u $USER`, and read failures
 with:
@@ -110,8 +122,14 @@ back to the public record.
 ## 2. Quality control
 
 ```
+cd $WORKDIR          # always submit from here
 sbatch scripts/qc.sh
 ```
+
+> **Always submit from `$WORKDIR`, not from inside `scripts/`.** Every path in
+> the scripts is relative to the directory you submit from, including where the
+> results land. Logs appear beside you as `vg_qc_<jobid>.out` and
+> `vg_qc_<jobid>.err`.
 
 The HTML report cannot be opened on a compute node. Either copy it to your own
 machine or read the text summary in place:
@@ -150,7 +168,17 @@ only reads matching the SARS-CoV-2 reference.
 count far below the input. For `A01`, 487,837 read pairs survive out of
 1,442,994 — about 34%.
 
-Now look at the whole set:
+Now look at all twelve at once:
+
+```
+for f in results/host_removal/*.riak.log; do
+  s=$(basename $f .riak.log)
+  i=$(awk -F'\t' '/^Input reads file 1/{print $2}' $f)
+  k=$(awk -F'\t' '/^Kept reads 1/{print $2}' $f)
+  awk -v s=$s -v i=$i -v k=$k 'BEGIN{printf "%-5s %10s %10s %6.1f%%\n", s, i, k, 100*k/i}'
+done
+```
+
 
 | Sample | Retained | | Sample | Retained |
 | --- | --- | --- | --- | --- |
@@ -219,6 +247,15 @@ map at 37.65%.
 
 A quality metric can be flattered by a filtering decision made upstream of it. If
 you report a mapping rate, report what it was computed on.
+
+All twelve at once, with the published figures alongside:
+
+```
+bash scripts/report.sh
+```
+
+Depth should land within a few percent of the published value for most samples.
+One does not, and finding it is Q3.
 
 ### 4c. Consensus and variants
 
@@ -401,6 +438,28 @@ If you take one sentence away from today, take this one: phylogenetic clustering
 does not establish transmission. Sampling, epidemiological context, timing,
 recombination and sequencing quality all bear on interpretation, and the tree is
 one input among them.
+
+## Appendix: everything in one script
+
+`scripts/one_sample.sh` runs the whole chain for a single sample — host removal,
+QC, trim, map, depth, consensus, variants — with timings and a comparison
+against the published metrics:
+
+```
+mkdir -p logs results
+sbatch scripts/one_sample.sh            # A07 by default, edit SAMPLE to change
+```
+
+All twelve as a job array:
+
+```
+sbatch --array=1-12 scripts/one_sample.sh
+```
+
+The step-by-step scripts are the better way to learn what each stage does, which
+is why the walkthrough uses them. This one is for when you want the result, for
+re-running on your own data later, and as a smoke test after anything changes on
+the cluster.
 
 ## Troubleshooting
 

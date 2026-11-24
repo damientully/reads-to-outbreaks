@@ -1,11 +1,15 @@
 #!/bin/bash
+# Logs are written beside wherever you submit from, as vg_<step>_<jobid>.out/.err.
+# They deliberately do NOT go in a subdirectory: SLURM opens the output file at
+# job launch, and a missing directory makes the job fail or hang silently on
+# this cluster.
 #SBATCH --job-name=vg_tree
 #SBATCH --partition=short
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
 #SBATCH --time=00:30:00
-#SBATCH --output=logs/%j_tree.out
-#SBATCH --error=logs/%j_tree.err
+#SBATCH --output=vg_tree_%j.out
+#SBATCH --error=vg_tree_%j.err
 
 # ---------------------------- EDIT HERE ----------------------------
 WORKDIR=$HOME/roche/viral-genomics

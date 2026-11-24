@@ -99,9 +99,16 @@ printf "missing items:  %s\n" "$miss"
 
 cat <<TXT
 
-Push it:
+Push it. macOS 15 ships Apple's openrsync, which segfaults against older remote
+rsync ("unexpected end of file", "child exited with status 11"). Check which you
+have with: rsync --version
 
+  # GNU rsync 3.x (install with: conda install -c conda-forge rsync)
   rsync -avh --progress "$STAGE/" ${CLUSTER}:${REMOTE}/
+
+  # or, with no working rsync - one shot, no resume, but fast
+  cd "$(dirname "$STAGE")" && tar cf - "$(basename "$STAGE")" \
+    | ssh ${CLUSTER} 'cd "$(dirname "${REMOTE}")" && tar xvf -'
 
 Then on the cluster, make it read-only to participants:
 

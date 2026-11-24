@@ -1,11 +1,19 @@
 #!/bin/bash
+# Logs are written beside wherever you submit from, as vg_<step>_<jobid>.out/.err.
+# They deliberately do NOT go in a subdirectory: SLURM opens the output file at
+# job launch, and a missing directory makes the job fail or hang silently on
+# this cluster.
 #SBATCH --job-name=vg_trimming
 #SBATCH --partition=short
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
+#SBATCH --array=1-12
+# 2 CPUs x 12 tasks = 24, which fits under the 32-CPU per-user QOS limit on this
+# cluster, so all twelve run in one wave. At 4 CPUs only 8 run and the rest sit
+# in PD with QOSMaxCpuPerUserLimit. The tools are I/O bound, not CPU bound.
 #SBATCH --time=01:00:00
-#SBATCH --output=logs/%j_trimming.out
-#SBATCH --error=logs/%j_trimming.err
+#SBATCH --output=vg_trimming_%j.out
+#SBATCH --error=vg_trimming_%j.err
 
 # ---------------------------- EDIT HERE ----------------------------
 WORKDIR=$HOME/roche/viral-genomics
@@ -17,6 +25,13 @@ module load fastp fastqc multiqc
 # -------------------------------------------------------------------
 
 set -euo pipefail
+
+# An array task processes one sample; SAMPLE above is used only if you submit
+# this without --array.
+if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+  SAMPLE=$(printf "A%02d" "$SLURM_ARRAY_TASK_ID")
+fi
+echo "### $SAMPLE"
 cd "$WORKDIR"
 mkdir -p results/trimming logs
 

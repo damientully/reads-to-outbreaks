@@ -74,12 +74,6 @@ traced back to the public record.
 
 ## 1. Set up your workspace
 
-> **Facilitators:** the bundle must be staged at
-> `/mnt/roche/resources/viral-genomics` before anyone follows these steps. Build
-> and verify it with `build/stage_bundle.sh`, push it with `rsync`, then
-> `chmod -R a+rX,go-w`. The scripts will stop with a clear error if the reads are
-> not there, but they cannot stage it for you.
-
 ```
 export WORKDIR=$HOME/roche/viral-genomics
 export RESOURCES=/mnt/roche/resources/viral-genomics

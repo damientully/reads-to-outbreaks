@@ -1,0 +1,17 @@
+# For local testing on macOS only. The workshop itself uses cluster modules.
+name: viral-workshop
+channels: [conda-forge, bioconda]
+dependencies:
+  - sra-tools
+  - entrez-direct
+  - read-it-and-keep
+  - fastqc
+  - fastp
+  - minimap2
+  - samtools
+  - bcftools
+  - ivar
+  - mafft
+  - iqtree
+  - seqkit
+  - csvtk

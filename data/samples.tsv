@@ -1,0 +1,13 @@
+label	sample_id	sra_run	genbank	introduction	clade	pango	mean_depth	ambig_ns	pct_mapped	role
+A01	MA_MGH_00459	SRR11954083	MT520529.1	IntroductionA	20C	B.1.268	3136	2	99.98	cleanest genome; worked example
+A02	MA_MGH_00476	SRR11954287	MT520495.1	IntroductionA	20C	B.1.268	7407	32	99.89	highest depth; lowest CV (14%)
+A03	MA_MGH_00248	SRR11953726	MT520380.1	IntroductionA	20C	B.1.268	105	158	99.45	mid-quality; carries S:F32L
+A04	MA_MGH_00262	SRR11953927	MT520400.1	IntroductionC	20A	B.1	340	74	99.74	third member of Introduction C
+A05	MA_MGH_00229	SRR11953924	MT520263.1	IntroductionB	20C	B.1	425	38	99.86	Introduction B; N:Q229H
+A06	MA_MGH_00238	SRR11954088	MT520440.1	IntroductionB	20C	B.1	1089	69	99.76	Introduction B
+A07	MA_MGH_00282	SRR11953844	MT520483.1	IntroductionA	20C	B.1.268	30	3765	87.39	failure case; 1274 positions <10x
+A08	MA_MGH_00250	SRR11954102	MT520530.1	IntroductionB	20C	B.1	385	35	99.87	Introduction B
+A09	MA_MGH_00289	SRR11953966	MT520208.1	IntroductionA	20C	B.1.268	60	1943	93.48	poor AND divergent; extra ORF1a/ORF3a subs
+A10	MA_MGH_00257	SRR11954086	MT520479.1	IntroductionC	20A	B.1	466	71	99.76	Introduction C
+A11	MA_MGH_00298	SRR11954189	MT520340.1	IntroductionC	20A	B.1	660	38	99.86	Introduction C
+A12	MA_MGH_00299	SRR11954210	MT520330.1	IntroductionA	20C	B.1.453	825	67	99.76	different lineage, same introduction

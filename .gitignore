@@ -1,0 +1,26 @@
+# sequencing data and derived output - staged on the cluster, never in git
+raw/
+sra/
+hostdepleted/
+trimmed/
+bam/
+depth/
+consensus/
+variants/
+align/
+tree/
+qc/
+logs/
+results/
+env/
+data/fastq/
+data/reference/
+data/genomes/
+data/nextclade_sars-cov-2/
+site/
+*.fastq
+*.fastq.gz
+*.bam
+*.bai
+.DS_Store
+_to_delete/

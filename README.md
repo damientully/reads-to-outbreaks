@@ -15,8 +15,7 @@ data/samples.tsv     the twelve samples: SRA runs, introductions, published QC m
 data/                supporting public files (dataset table, reference tree)
 ```
 
-Sequencing data is not in this repository. The facilitator stages it into a
-shared folder on the cluster; see `docs/index.md`.
+Sequencing data is not in this repository but on a shared folder on the cluster; see `docs/index.md`.
 
 ## The dataset
 
@@ -40,6 +39,4 @@ minimap2, samtools, ivar, mafft, iqtree2 and seqkit.
 
 ## Credits
 
-Dataset and benchmark metrics are the work of the cited authors. Workshop
-structure follows the conventions of the
-[UMIC Roche metagenomics training](https://github.com/AlfredUg/metagenomics-umic-roche).
+Dataset and benchmark metrics are the work of the cited authors. 

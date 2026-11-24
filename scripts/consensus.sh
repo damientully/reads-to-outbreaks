@@ -63,6 +63,12 @@ mkdir -p results/consensus results/variants logs
 REF=$RESOURCES/data/reference/MN908947.3.fasta
 BAM=results/mapping/${SAMPLE}.sorted.bam
 
+# An empty BAM is 312 bytes of header and produces a genome of Ns. Catch it.
+if [ ! -s "$BAM" ] || [ "$(samtools view -c "$BAM")" -eq 0 ]; then
+  echo "ERROR: $BAM has no alignments - has mapping.sh finished successfully?" >&2
+  exit 1
+fi
+
 # consensus
 samtools mpileup -aa -A -d 0 -Q 0 --reference "$REF" "$BAM" \
   | ivar consensus -p results/consensus/${SAMPLE} \

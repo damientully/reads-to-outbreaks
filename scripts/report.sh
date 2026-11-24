@@ -18,7 +18,8 @@ for S in $(cut -f1 "$TSV" | tail -n +2); do
   KEPT=$(awk -F'\t' '/^Kept reads 1/{print $2}'     "$R" 2>/dev/null)
   MAP=$(awk '/ mapped \(/{gsub(/[(%]/,"");print $5; exit}' results/mapping/${S}.flagstat 2>/dev/null)
   DEP=$(awk '{s+=$3} END {if(NR) printf "%.0f", s/NR}' results/mapping/${S}.depth.tsv 2>/dev/null)
-  NS=$(grep -v '^>' results/consensus/${S}.fa 2>/dev/null | tr -cd 'Nn' | wc -c | tr -d ' ')
+  NS=""; [ -s results/consensus/${S}.fa ] && \
+    NS=$(grep -v '^>' results/consensus/${S}.fa | tr -cd 'Nn' | wc -c | tr -d ' ')
 
   read -r PD PN <<< "$(awk -F'\t' -v s="$S" '
     NR==1 { for (i=1;i<=NF;i++) { if ($i=="mean_depth") a=i; if ($i=="ambig_ns") b=i }; next }

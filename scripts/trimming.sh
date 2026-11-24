@@ -39,8 +39,24 @@ IN=results/host_removal
 OUT=results/trimming
 T=${SLURM_CPUS_PER_TASK:-4}
 
+# ReadItAndKeep writes <prefix>.reads_1.fastq.gz; older versions of this
+# pipeline used <prefix>_R1.fastq.gz. Accept either, and stop if neither is there
+# rather than handing an empty file to the next step.
+IN1=$IN/${SAMPLE}.reads_1.fastq.gz
+IN2=$IN/${SAMPLE}.reads_2.fastq.gz
+if [ ! -s "$IN1" ]; then
+  IN1=$IN/${SAMPLE}_R1.fastq.gz
+  IN2=$IN/${SAMPLE}_R2.fastq.gz
+fi
+if [ ! -s "$IN1" ] || [ ! -s "$IN2" ]; then
+  echo "ERROR: no host-depleted reads for $SAMPLE in $IN/" >&2
+  echo "       expected ${SAMPLE}.reads_1.fastq.gz - has host_removal.sh finished?" >&2
+  ls -la "$IN" >&2 || true
+  exit 1
+fi
+
 fastp \
-  -i "$IN/${SAMPLE}_R1.fastq.gz" -I "$IN/${SAMPLE}_R2.fastq.gz" \
+  -i "$IN1" -I "$IN2" \
   -o "$OUT/${SAMPLE}_R1.fastq.gz" -O "$OUT/${SAMPLE}_R2.fastq.gz" \
   --json "$OUT/${SAMPLE}_fastp.json" --html "$OUT/${SAMPLE}_fastp.html" \
   --thread "$T" --cut_tail --cut_tail_mean_quality 20 --length_required 50

@@ -66,6 +66,10 @@ IN=results/trimming
 OUT=results/mapping
 T=${SLURM_CPUS_PER_TASK:-4}
 
+for f in "$IN/${SAMPLE}_R1.fastq.gz" "$IN/${SAMPLE}_R2.fastq.gz"; do
+  [ -s "$f" ] || { echo "ERROR: missing or empty $f - has trimming.sh finished?" >&2; exit 1; }
+done
+
 minimap2 -t "$T" -ax sr "$REF" "$IN/${SAMPLE}_R1.fastq.gz" "$IN/${SAMPLE}_R2.fastq.gz" \
   | samtools sort -@ "$T" -o "$OUT/${SAMPLE}.sorted.bam"
 samtools index "$OUT/${SAMPLE}.sorted.bam"

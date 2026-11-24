@@ -72,6 +72,28 @@ traced back to the public record.
   results/               one subfolder per step
 ```
 
+## The seven steps at a glance
+
+Each is a job array over all twelve samples. Submit from `$WORKDIR`, and wait for
+each array to clear `squeue -u $USER` before the next — they chain through
+`results/`.
+
+```
+cd $WORKDIR
+sbatch scripts/qc.sh            # 2.  read quality control
+sbatch scripts/host_removal.sh  # 3.  remove human reads
+sbatch scripts/trimming.sh      # 4a. trim adapters and low-quality bases
+sbatch scripts/mapping.sh       # 4b. map to the reference
+sbatch scripts/consensus.sh     # 4c. consensus genome and variants
+sbatch scripts/alignment.sh     # 5a. align all twelve plus the reference
+sbatch scripts/tree.sh          # 5b. maximum likelihood tree
+
+bash scripts/report.sh          # cross-sample table, any time after 4c
+```
+
+The sections below explain what each step does and what to look for. Steps 4a to
+4c are sub-steps of section 4, and 5a to 5b of section 5.
+
 ## 1. Set up your workspace
 
 ```

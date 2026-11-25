@@ -123,6 +123,22 @@ fi
 say "SLURM scripts -> scripts/"
 if [ -d "$SCRIPTS" ]; then cp "$SCRIPTS"/*.sh "$STAGE/scripts/"; else echo "  MISSING: $SCRIPTS"; miss=$((miss+1)); fi
 
+say "tidy + permissions"
+# macOS sprinkles .DS_Store through any folder it has browsed. They are noise
+# in the bundle and they end up in MANIFEST.txt and CHECKSUMS.txt.
+n=$(find "$STAGE" -name .DS_Store -type f | wc -l | tr -d ' ')
+find "$STAGE" -name .DS_Store -type f -delete 2>/dev/null || true
+[ "$n" -gt 0 ] && echo "  removed $n .DS_Store file(s)" || echo "  no .DS_Store files"
+
+# Set the participant-facing permissions HERE, not only on the cluster.
+# The stage is created mode 700/600 by the local umask, and rsync -a preserves
+# permissions - so pushing without this gives participants a bundle they
+# cannot read. Fixing it at the source means the push is correct either way.
+find "$STAGE" -type d -exec chmod 755 {} +
+find "$STAGE" -type f -exec chmod 644 {} +
+chmod 755 "$STAGE"/scripts/*.sh
+echo "  dirs 755, files 644, scripts 755"
+
 say "manifest"
 ( cd "$STAGE" && find . -type f | sort > MANIFEST.txt )
 ( cd "$STAGE" && shasum -a 256 $(find . -type f ! -name CHECKSUMS.txt ! -name MANIFEST.txt) > CHECKSUMS.txt 2>/dev/null ) || true
@@ -178,6 +194,20 @@ Then on the cluster, make it read-only to participants:
 And check one path the scripts actually use:
 
   ls ${REMOTE}/data/fastq/A01_R1.fastq.gz ${REMOTE}/data/genomes/A01.fa
+
+Then VERIFY it is really read-only to everyone but you. All three must
+print nothing:
+
+  find ${REMOTE} -perm /022            # anything group- or other-writable
+  find ${REMOTE} ! -readable           # anything you cannot read
+  getfacl -pR ${REMOTE} 2>/dev/null | grep -E '^(group|other|mask).*w'
+
+And confirm participants can traverse down to it - every parent needs x:
+
+  namei -l ${REMOTE}/data/fastq/A01_R1.fastq.gz
+
+Every component should show r-x or rwx for other. If a parent is 750, the
+bundle is unreachable no matter how its own permissions look.
 TXT
 fi
 

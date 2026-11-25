@@ -52,7 +52,7 @@ ERR
 fi
 
 # ---------------------------- ENVIRONMENT --------------------------
-module load fastqc multiqc
+module load fastqc
 # -------------------------------------------------------------------
 
 set -euo pipefail
@@ -71,6 +71,11 @@ R2=$RESOURCES/data/fastq/${SAMPLE}_R2.fastq.gz
 
 # NOTE: fastqc 0.12 dropped '-o'. Use --outdir.
 fastqc -t "${SLURM_CPUS_PER_TASK:-4}" --outdir results/qc "$R1" "$R2"
-multiqc -o results/qc -n ${SAMPLE}_multiqc results/qc
+
+# MultiQC is deliberately NOT run here. This is an array task: twelve of these
+# run at once, so a multiqc that scanned results/qc would read a directory its
+# sibling tasks were still writing into, and each of the twelve reports would
+# aggregate an arbitrary subset. Run scripts/multiqc.sh once, after the array
+# finishes, for one report over all twelve samples.
 
 echo "done: results/qc"

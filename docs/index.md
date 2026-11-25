@@ -197,6 +197,25 @@ you need to know whether that model applies before you act on it.
 **Note:** FastQC 0.12 dropped the short `-o` flag. The scripts use `--outdir`. If
 you type it yourself and get `unrecognized arguments: -o`, that is why.
 
+### All twelve on one screen
+
+FastQC reports one sample at a time, which makes comparing twelve of them a
+matter of opening twelve tabs. Once the whole array has finished, collapse them
+into a single report:
+
+```
+squeue -u $USER              # wait until nothing is left
+bash scripts/multiqc.sh
+```
+
+MultiQC does not re-analyse anything. It reads the output FastQC already wrote
+and stacks it into one page, and the *General Statistics* table at the top is
+why you run it: read counts and quality for all twelve side by side.
+
+Run it **after** the array, not inside it. Twelve array tasks each running
+MultiQC would each read a directory the other eleven were still writing into,
+and no two reports would agree.
+
 **▸ Q1.** Open the report and find these four sections in the left-hand panel:
 *Per base sequence quality*, *Per base sequence content*, *Sequence Duplication
 Levels* and *Adapter Content*. Some will be marked with a red cross. Which of
@@ -555,7 +574,8 @@ All from `/software/modulefiles` unless noted.
 
 | Need | Module |
 | --- | --- |
-| Read QC | `fastqc/0.12.1`, `multiqc/1.35` |
+| Read QC, per sample | `fastqc/0.12.1` |
+| Read QC, all samples at once | `multiqc/1.35` |
 | Trimming | `fastp/1.3.7` |
 | Host removal | `read_keep/0.3.0` (binary: `readItAndKeep`) |
 | Mapping | `minimap2/2.31`, `samtools/1.22.1` |

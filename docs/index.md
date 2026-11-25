@@ -277,10 +277,32 @@ documented?
 sbatch scripts/trimming.sh
 ```
 
-Note what we are *not* doing: trimming primer sequences. These are metagenomic
-data, so there are no primers. If they were amplicon data there would be an
-`ivar trim` step here, and skipping it can produce confidently wrong genotypes
-where a variant sits under a primer binding site.
+**What it does:** `fastp` does three things here. It trims low-quality bases from
+the 3' end of each read (a sliding window, cut when the mean drops below Q20),
+removes adapter read-through by paired-end overlap detection, and discards any
+read left shorter than 50 bp. FastQC then runs again on the output, so you can
+put the before and after reports side by side.
+
+**What you should see:** `results/trimming/A01_fastp.html` reports reads in,
+reads out, and why each discarded read was dropped. Compare its per-base quality
+plot against the one from step 2.
+
+**Two different things are called trimming, and only one of them is happening.**
+
+| | What it removes | When you need it | Tool |
+|---|---|---|---|
+| Quality / adapter trimming | poor-quality tails, adapter read-through | almost always | `fastp`, here |
+| Primer trimming | PCR primer sequences, by coordinate | amplicon data only | `ivar trim`, **not here** |
+
+These are unbiased metagenomic libraries, so no primers were used and there is
+nothing to trim by coordinate. On amplicon data — ARTIC, say — an `ivar trim`
+step would belong between mapping and consensus, and leaving it out produces
+confidently wrong genotypes wherever a variant sits under a primer binding
+site: the primer sequence is the primer's, not the sample's, so the consensus
+reports the reference base no matter what the patient carried. The reads still
+map, the depth still looks fine, and the error is invisible downstream.
+
+So: we are trimming, just not for primers.
 
 ### 4b. Mapping
 

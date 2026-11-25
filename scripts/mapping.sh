@@ -1,5 +1,7 @@
 #!/bin/bash
-# Logs are written beside wherever you submit from, as vg_<step>_<jobid>.out/.err.
+# Logs are written beside wherever you submit from, as
+#   vg_<step>_<arrayjobid>_<task>.out/.err
+# The task number IS the sample number, so _7 is A07.
 # They deliberately do NOT go in a subdirectory: SLURM opens the output file at
 # job launch, and a missing directory makes the job fail or hang silently on
 # this cluster.
@@ -12,8 +14,8 @@
 # cluster, so all twelve run in one wave. At 4 CPUs only 8 run and the rest sit
 # in PD with QOSMaxCpuPerUserLimit. The tools are I/O bound, not CPU bound.
 #SBATCH --time=01:00:00
-#SBATCH --output=vg_mapping_%j.out
-#SBATCH --error=vg_mapping_%j.err
+#SBATCH --output=vg_mapping_%A_%a.out
+#SBATCH --error=vg_mapping_%A_%a.err
 
 # ---------------------------- EDIT HERE ----------------------------
 WORKDIR=$HOME/roche/viral-genomics

@@ -42,7 +42,7 @@ and a figure that draws an unresolved node as a clean split misrepresents it.
 TXT
 else
   FT=$(command -v FastTree || command -v fasttree)
-  "$FT" -gtr -nt -gamma "$ALN" > "$OUT/all.nwk" 2> logs/fasttree.log
+  "$FT" -gtr -nt -gamma "$ALN" > "$OUT/all.nwk" 2> "$OUT/fasttree.log"
   TREE=$OUT/all.nwk
   cat <<'TXT'
 

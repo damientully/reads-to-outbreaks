@@ -68,7 +68,8 @@ traced back to the public record.
 
 ~/roche/viral-genomics/                   yours
   scripts/               your copies
-  vg_<step>_<jobid>.out  job logs, written where you submit from
+  vg_<step>_<job>_<N>.out   job logs, written where you submit from
+                            N is the task number = the sample number
   results/               one subfolder per step
 ```
 
@@ -125,10 +126,22 @@ sbatch --array=7  scripts/qc.sh     # A07 only
 sbatch --array=1-3 scripts/qc.sh    # A01 to A03
 ```
 
-The scripts create their own `results/` subdirectories. Job logs are written
-beside you as `vg_<step>_<jobid>.out` and `.err`, so **always submit from
-`$WORKDIR`** — every path in the scripts is relative to the directory you submit
+The scripts create their own `results/` subdirectories. **There is no `logs/`
+folder, and you should not make one** — SLURM opens the log file at job launch,
+and on this cluster a missing directory makes the job fail with no diagnostic,
+or hang. Logs are written beside you instead, so **always submit from
+`$WORKDIR`**: every path in the scripts is relative to the directory you submit
 from.
+
+The five per-sample steps are job arrays, so each produces twelve logs, one per
+task, and **the task number is the sample number**:
+
+```
+vg_qc_49123_1.out     A01
+vg_qc_49123_7.out     A07
+```
+
+The single-job steps (alignment, tree) produce one log, `vg_<step>_<jobid>.out`.
 
 Submit with `sbatch`, watch your jobs with `squeue -u $USER`, and read failures
 with:
@@ -161,8 +174,8 @@ sbatch scripts/qc.sh
 
 > **Always submit from `$WORKDIR`, not from inside `scripts/`.** Every path in
 > the scripts is relative to the directory you submit from, including where the
-> results land. Logs appear beside you as `vg_qc_<jobid>.out` and
-> `vg_qc_<jobid>.err`.
+> results land. Logs appear beside you as `vg_qc_<jobid>_<N>.out` and `.err`,
+> one pair per sample, where `<N>` is the sample number.
 
 The HTML report cannot be opened on a compute node. Either copy it to your own
 machine or read the text summary in place:

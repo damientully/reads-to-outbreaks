@@ -75,9 +75,10 @@ traced back to the public record.
 
 ## The seven steps at a glance
 
-Each is a job array over all twelve samples. Submit from `$WORKDIR`, and wait for
-each array to clear `squeue -u $USER` before the next — they chain through
-`results/`.
+The first five are job arrays over all twelve samples; alignment and tree are
+single jobs, because they work on all twelve genomes at once. Submit from
+`$WORKDIR`, and wait for each to clear `squeue -u $USER` before the next — they
+chain through `results/`.
 
 ```
 cd $WORKDIR
@@ -88,7 +89,12 @@ sbatch scripts/mapping.sh       # 4b. map to the reference
 sbatch scripts/consensus.sh     # 4c. consensus genome and variants
 sbatch scripts/alignment.sh     # 5a. align all twelve plus the reference
 sbatch scripts/tree.sh          # 5b. maximum likelihood tree
+```
 
+Two more are run directly on the login node, not with `sbatch`:
+
+```
+bash scripts/multiqc.sh         # all twelve QC reports on one page, after step 2
 bash scripts/report.sh          # cross-sample table, any time after 4c
 ```
 

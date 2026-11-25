@@ -100,7 +100,7 @@ The sections below explain what each step does and what to look for. Steps 4a to
 export WORKDIR=$HOME/roche/viral-genomics
 export RESOURCES=/mnt/roche/resources/viral-genomics
 
-mkdir -p $WORKDIR/{scripts,logs,results}
+mkdir -p $WORKDIR/scripts
 cp $RESOURCES/scripts/*.sh $WORKDIR/scripts/
 cd $WORKDIR
 ```
@@ -116,6 +116,11 @@ Every script has an `EDIT HERE` block at the top. You do not normally change
 anything in it. To run a single sample instead, submit without the array:
 `sbatch --array=1 scripts/qc.sh` for A01, or edit `SAMPLE` and drop `--array`
 from the script.
+
+The scripts create their own `results/` subdirectories. Job logs are written
+beside you as `vg_<step>_<jobid>.out` and `.err`, so **always submit from
+`$WORKDIR`** — every path in the scripts is relative to the directory you submit
+from.
 
 Submit with `sbatch`, watch your jobs with `squeue -u $USER`, and read failures
 with:
@@ -167,8 +172,14 @@ you need to know whether that model applies before you act on it.
 **Note:** FastQC 0.12 dropped the short `-o` flag. The scripts use `--outdir`. If
 you type it yourself and get `unrecognized arguments: -o`, that is why.
 
-**▸ Q1.** Which FastQC modules would you genuinely worry about for this kind of
-data, and which can you ignore?
+**▸ Q1.** Open the report and find these four sections in the left-hand panel:
+*Per base sequence quality*, *Per base sequence content*, *Sequence Duplication
+Levels* and *Adapter Content*. Some will be marked with a red cross. Which of
+those failures would actually concern you in this data, and which are expected
+to look bad here?
+
+(FastQC calls its report sections "modules", which is unrelated to the cluster's
+`module load`. This walkthrough says "sections" to keep them apart.)
 
 ## 3. Host removal
 
@@ -462,7 +473,7 @@ QC, trim, map, depth, consensus, variants — with timings and a comparison
 against the published metrics:
 
 ```
-mkdir -p logs results
+cd $WORKDIR
 sbatch scripts/one_sample.sh            # A07 by default, edit SAMPLE to change
 ```
 

@@ -63,16 +63,17 @@ if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
 fi
 echo "### $SAMPLE"
 cd "$WORKDIR"
-mkdir -p results/consensus results/variants logs
-
 REF=$RESOURCES/data/reference/MN908947.3.fasta
 BAM=results/mapping/${SAMPLE}.sorted.bam
 
 # An empty BAM is 312 bytes of header and produces a genome of Ns. Catch it.
+# Checked before mkdir, so a step that could not run leaves no empty dir.
 if [ ! -s "$BAM" ] || [ "$(samtools view -c "$BAM")" -eq 0 ]; then
   echo "ERROR: $BAM has no alignments - has mapping.sh finished successfully?" >&2
   exit 1
 fi
+
+mkdir -p results/consensus results/variants
 
 # consensus
 samtools mpileup -aa -A -d 0 -Q 0 --reference "$REF" "$BAM" \

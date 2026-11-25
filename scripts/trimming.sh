@@ -38,7 +38,7 @@ if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
 fi
 echo "### $SAMPLE"
 cd "$WORKDIR"
-mkdir -p results/trimming logs
+mkdir -p results/trimming
 
 IN=results/host_removal
 OUT=results/trimming

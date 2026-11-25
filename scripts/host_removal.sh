@@ -64,7 +64,7 @@ if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
 fi
 echo "### $SAMPLE"
 cd "$WORKDIR"
-mkdir -p results/host_removal logs
+mkdir -p results/host_removal
 
 REF=$RESOURCES/data/reference/MN908947.3.fasta
 R1=$RESOURCES/data/fastq/${SAMPLE}_R1.fastq.gz

@@ -64,7 +64,7 @@ if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
 fi
 echo "### $SAMPLE"
 cd "$WORKDIR"
-mkdir -p results/qc logs
+mkdir -p results/qc
 
 R1=$RESOURCES/data/fastq/${SAMPLE}_R1.fastq.gz
 R2=$RESOURCES/data/fastq/${SAMPLE}_R2.fastq.gz

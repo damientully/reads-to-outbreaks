@@ -47,7 +47,7 @@ module load mafft seqkit
 
 set -euo pipefail
 cd "$WORKDIR"
-mkdir -p results/alignment logs
+mkdir -p results/alignment
 
 REF=$RESOURCES/data/reference/MN908947.3.fasta
 GEN=$RESOURCES/data/genomes

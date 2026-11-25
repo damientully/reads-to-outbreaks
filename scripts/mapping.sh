@@ -64,16 +64,24 @@ if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
 fi
 echo "### $SAMPLE"
 cd "$WORKDIR"
-mkdir -p results/mapping logs
-
 REF=$RESOURCES/data/reference/MN908947.3.fasta
 IN=results/trimming
 OUT=results/mapping
 T=${SLURM_CPUS_PER_TASK:-4}
 
+# Check the input BEFORE creating results/mapping. Creating it first makes an
+# empty results/mapping/ appear even when the step could not run, which reads
+# like mapping succeeded.
+if [ ! -d "$IN" ]; then
+  echo "ERROR: $IN does not exist, so trimming.sh has not been run." >&2
+  echo "       Run the steps in order: qc -> host_removal -> trimming -> mapping" >&2
+  exit 1
+fi
 for f in "$IN/${SAMPLE}_R1.fastq.gz" "$IN/${SAMPLE}_R2.fastq.gz"; do
   [ -s "$f" ] || { echo "ERROR: missing or empty $f - has trimming.sh finished?" >&2; exit 1; }
 done
+
+mkdir -p results/mapping
 
 minimap2 -t "$T" -ax sr "$REF" "$IN/${SAMPLE}_R1.fastq.gz" "$IN/${SAMPLE}_R2.fastq.gz" \
   | samtools sort -@ "$T" -o "$OUT/${SAMPLE}.sorted.bam"

@@ -22,7 +22,7 @@ module load iqtree2
 
 set -euo pipefail
 cd "$WORKDIR"
-mkdir -p results/tree logs
+mkdir -p results/tree
 
 ALN=results/alignment/all.aln
 OUT=results/tree

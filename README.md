@@ -1,6 +1,7 @@
-# From Reads to Outbreaks
+# Pathogen Genomics
 
-A two-hour hands-on workshop in viral pathogen genomics: twelve SARS-CoV-2
+**From Reads to Outbreaks** — a two-hour hands-on workshop in viral pathogen
+genomics: twelve SARS-CoV-2
 genomes from a real skilled nursing facility outbreak, taken from raw sequencing
 reads to an epidemiological conclusion on an HPC cluster under SLURM.
 

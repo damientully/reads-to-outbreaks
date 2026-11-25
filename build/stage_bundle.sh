@@ -4,7 +4,12 @@
 #
 # Run on the machine where you did the build (needs the output of 00-03).
 #
-#   bash stage_bundle.sh
+#   bash stage_bundle.sh              # full bundle (needs the build output)
+#   ONLY=code bash stage_bundle.sh    # refresh ONLY scripts/ and docs/ in an
+#                                     # existing stage, then push just those two
+#                                     # directories. Use this for a script or
+#                                     # walkthrough edit: it needs no build
+#                                     # output and touches no sequencing data.
 #
 set -euo pipefail
 
@@ -14,17 +19,35 @@ STAGE=${STAGE:-$HOME/working/bundle-staging/viral-genomics}
 CLUSTER=${CLUSTER:-umicroche-login}
 REMOTE=${REMOTE:-/mnt/roche/resources/viral-genomics}
 SCRIPTS=${SCRIPTS:-$HOME/working/reads-to-outbreaks/scripts}
+ONLY=${ONLY:-all}            # all | code
 # -------------------------------------------------------------------
 
 say() { printf '\n== %s\n' "$*"; }
 miss=0
 need() { [ -e "$1" ] || { echo "  MISSING: $1"; miss=$((miss+1)); }; }
 
-rm -rf "$STAGE"
-mkdir -p "$STAGE"/{data/fastq,data/reference,data/genomes,scripts} \
-         "$STAGE"/precomputed/{00_hostdepleted,01_qc,02_mapping,03_consensus,04_variants,05_align,06_tree}
+case "$ONLY" in
+  all|code) ;;
+  *) echo "ONLY must be 'all' or 'code', not '$ONLY'" >&2; exit 2 ;;
+esac
 
-LABELS=$(cut -f1 "$BUILD/data/samples.tsv" | tail -n +2)
+if [ "$ONLY" = all ]; then
+  rm -rf "$STAGE"
+  mkdir -p "$STAGE"/{data/fastq,data/reference,data/genomes,scripts} \
+           "$STAGE"/precomputed/{00_hostdepleted,01_qc,02_mapping,03_consensus,04_variants,05_align,06_tree}
+  LABELS=$(cut -f1 "$BUILD/data/samples.tsv" | tail -n +2)
+else
+  # Refresh code only. The stage must already exist, or we would push a bundle
+  # with scripts and no data and overwrite a good one on the cluster.
+  [ -d "$STAGE/data/fastq" ] || {
+    echo "ERROR: $STAGE has no data/fastq, so this is not a staged bundle." >&2
+    echo "Run the full 'bash stage_bundle.sh' first." >&2
+    exit 1
+  }
+  mkdir -p "$STAGE/scripts" "$STAGE/docs"
+fi
+
+if [ "$ONLY" = all ]; then
 
 say "raw reads -> data/fastq"
 # Deliberately the RAW reads, not the host-depleted ones: step 3 of the workshop
@@ -83,6 +106,20 @@ cp "$BUILD"/variants/*.tsv       "$STAGE/precomputed/04_variants/"      2>/dev/n
 cp "$BUILD"/align/all.aln        "$STAGE/precomputed/05_align/"         2>/dev/null || true
 cp "$BUILD"/tree/all.treefile "$BUILD"/tree/all.iqtree "$STAGE/precomputed/06_tree/" 2>/dev/null || true
 
+fi   # end of data staging (ONLY=all)
+
+say "walkthrough -> docs/"
+# Participants must be able to read the instructions without GitHub access:
+# a private repo needs org membership, and not everyone in the room will have it.
+mkdir -p "$STAGE/docs"
+DOCS=${DOCS:-$HOME/working/reads-to-outbreaks/docs/index.md}
+if [ -s "$DOCS" ]; then
+  cp "$DOCS" "$STAGE/docs/"
+  echo "  copied $(basename "$DOCS")"
+else
+  echo "  MISSING: $DOCS"; miss=$((miss+1))
+fi
+
 say "SLURM scripts -> scripts/"
 if [ -d "$SCRIPTS" ]; then cp "$SCRIPTS"/*.sh "$STAGE/scripts/"; else echo "  MISSING: $SCRIPTS"; miss=$((miss+1)); fi
 
@@ -91,12 +128,36 @@ say "manifest"
 ( cd "$STAGE" && shasum -a 256 $(find . -type f ! -name CHECKSUMS.txt ! -name MANIFEST.txt) > CHECKSUMS.txt 2>/dev/null ) || true
 
 say "summary"
+printf "mode:           %s\n" "$ONLY"
 printf "fastq files:    %s  (expect 24)\n" "$(ls -1 "$STAGE"/data/fastq/*.fastq.gz 2>/dev/null | wc -l | tr -d ' ')"
 printf "genome files:   %s  (expect 12 + all_genomes.fa)\n" "$(ls -1 "$STAGE"/data/genomes/A*.fa 2>/dev/null | wc -l | tr -d ' ')"
 printf "scripts:        %s\n" "$(ls -1 "$STAGE"/scripts/*.sh 2>/dev/null | wc -l | tr -d ' ')"
+printf "arrays in them: %s  (expect 5: qc host_removal trimming mapping consensus)\n" "$(grep -l 'SBATCH --array' "$STAGE"/scripts/*.sh 2>/dev/null | wc -l | tr -d ' ')"
 printf "total size:     %s\n" "$(du -sh "$STAGE" | cut -f1)"
 printf "missing items:  %s\n" "$miss"
 
+if [ "$ONLY" = code ]; then
+cat <<TXT
+
+Push just the code. Two directories, a few hundred KB, no sequencing data:
+
+  rsync -avh "$STAGE/scripts/" ${CLUSTER}:${REMOTE}/scripts/
+  rsync -avh "$STAGE/docs/"    ${CLUSTER}:${REMOTE}/docs/
+
+  # or without rsync
+  scp -O "$STAGE"/scripts/*.sh ${CLUSTER}:${REMOTE}/scripts/
+  scp -O "$STAGE"/docs/*.md    ${CLUSTER}:${REMOTE}/docs/
+
+Then refresh your own working copy the same way participants do, so you are
+testing the file they will run:
+
+  cp ${REMOTE}/scripts/*.sh \$HOME/roche/viral-genomics/scripts/
+
+Verify all five per-sample scripts arrived as arrays:
+
+  grep -c 'SBATCH --array' ${REMOTE}/scripts/*.sh
+TXT
+else
 cat <<TXT
 
 Push it. macOS 15 ships Apple's openrsync, which segfaults against older remote
@@ -118,5 +179,6 @@ And check one path the scripts actually use:
 
   ls ${REMOTE}/data/fastq/A01_R1.fastq.gz ${REMOTE}/data/genomes/A01.fa
 TXT
+fi
 
 [ "$miss" -eq 0 ] || { echo; echo "WARNING: $miss item(s) missing - fix before pushing."; exit 1; }

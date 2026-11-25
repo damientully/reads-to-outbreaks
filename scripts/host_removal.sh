@@ -18,6 +18,9 @@
 # ---------------------------- EDIT HERE ----------------------------
 WORKDIR=$HOME/roche/viral-genomics
 RESOURCES=/mnt/roche/resources/viral-genomics
+# This script runs ALL TWELVE samples by default, as a job array (see
+# --array=1-12 above). SAMPLE below is a fallback, used only if you submit
+# without an array, e.g.  sbatch --array=1 scripts/qc.sh
 SAMPLE=A01
 # -------------------------------------------------------------------
 

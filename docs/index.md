@@ -1,8 +1,8 @@
-# From Reads to Outbreaks
+# Pathogen Genomics
 
-Practical viral pathogen genomics using NGS data. Twelve SARS-CoV-2 genomes from
-a real skilled nursing facility outbreak, taken from raw sequencing reads to an
-epidemiological conclusion.
+**From Reads to Outbreaks** — practical viral pathogen genomics using NGS data.
+Twelve SARS-CoV-2 genomes from a real skilled nursing facility outbreak, taken
+from raw sequencing reads to an epidemiological conclusion.
 
 By the end you will have built a consensus genome from raw reads, found the
 variation in it, placed twelve genomes on a tree, and decided whether an outbreak
@@ -112,10 +112,18 @@ so twelve run side by side and the whole step finishes in about the time one
 sample takes. Comparing samples is the point of several steps, and you cannot do
 that one sample at a time.
 
-Every script has an `EDIT HERE` block at the top. You do not normally change
-anything in it. To run a single sample instead, submit without the array:
-`sbatch --array=1 scripts/qc.sh` for A01, or edit `SAMPLE` and drop `--array`
-from the script.
+Every script has an `EDIT HERE` block at the top. **You do not normally change
+anything in it** — `sbatch scripts/qc.sh` already runs all twelve, because
+`--array=1-12` is set inside the script.
+
+The `SAMPLE=A01` line in that block is only a fallback for running one sample on
+its own. To do that, override the array on the command line:
+
+```
+sbatch --array=1  scripts/qc.sh     # A01 only
+sbatch --array=7  scripts/qc.sh     # A07 only
+sbatch --array=1-3 scripts/qc.sh    # A01 to A03
+```
 
 The scripts create their own `results/` subdirectories. Job logs are written
 beside you as `vg_<step>_<jobid>.out` and `.err`, so **always submit from
@@ -146,6 +154,10 @@ back to the public record.
 cd $WORKDIR          # always submit from here
 sbatch scripts/qc.sh
 ```
+
+> This walkthrough is also on the cluster at
+> `$RESOURCES/docs/index.md`, so you can read it without leaving the terminal:
+> `less $RESOURCES/docs/index.md`.
 
 > **Always submit from `$WORKDIR`, not from inside `scripts/`.** Every path in
 > the scripts is relative to the directory you submit from, including where the
